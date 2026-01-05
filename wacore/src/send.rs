@@ -392,7 +392,7 @@ pub async fn prepare_dm_stanza<
     for device_jid in &all_devices {
         let is_own_device = device_jid.user == own_jid.user && device_jid.device != own_jid.device;
         if is_own_device {
-            own_other_devices.push(device_jid.clone());
+            // own_other_devices.push(device_jid.clone());
         } else {
             recipient_devices.push(device_jid.clone());
         }

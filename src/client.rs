@@ -1121,11 +1121,21 @@ impl Client {
         false
     }
 
-    async fn fetch_app_state_with_retry(&self, name: WAPatchName) -> anyhow::Result<()> {
+    pub async fn fetch_app_state_with_retry(&self, name: WAPatchName) -> anyhow::Result<()> {
+        self.fetch_app_state_with_retry_full(name, true).await
+    }
+
+    pub async fn fetch_app_state_with_retry_full(
+        &self,
+        name: WAPatchName,
+        validate_macs: bool,
+    ) -> anyhow::Result<()> {
         let mut attempt = 0u32;
         loop {
             attempt += 1;
-            let res = self.process_app_state_sync_task(name, true).await;
+            let res = self
+                .process_app_state_sync_task(name, true, validate_macs)
+                .await;
             match res {
                 Ok(()) => return Ok(()),
                 Err(e) => {
@@ -1157,10 +1167,11 @@ impl Client {
         }
     }
 
-    pub(crate) async fn process_app_state_sync_task(
+    pub async fn process_app_state_sync_task(
         &self,
         name: WAPatchName,
         full_sync: bool,
+        validate_macs: bool,
     ) -> anyhow::Result<()> {
         let backend = self.persistence_manager.backend();
         let mut full_sync = full_sync;
@@ -1230,8 +1241,9 @@ impl Client {
             };
 
             let proc = self.get_app_state_processor().await;
-            let (mutations, new_state, list) =
-                proc.decode_patch_list(&resp, &download, true).await?;
+            let (mutations, new_state, list) = proc
+                .decode_patch_list(&resp, &download, validate_macs)
+                .await?;
             let decode_elapsed = _decode_start.elapsed();
             if decode_elapsed.as_millis() > 500 {
                 debug!(target: "Client/AppState", "Patch decode for {:?} took {:?}", name, decode_elapsed);

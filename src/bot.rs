@@ -108,7 +108,7 @@ impl Bot {
                         }
                         crate::sync_task::MajorSyncTask::AppStateSync { name, full_sync } => {
                             if let Err(e) = worker_client
-                                .process_app_state_sync_task(name, full_sync)
+                                .process_app_state_sync_task(name, full_sync, true)
                                 .await
                             {
                                 warn!("App state sync task for {:?} failed: {}", name, e);
