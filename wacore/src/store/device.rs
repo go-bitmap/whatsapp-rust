@@ -20,7 +20,8 @@ pub mod key_pair_serde {
         let bytes: Vec<u8> = key_pair
             .private_key
             .serialize()
-            .into_iter()
+            .iter()
+            .copied()
             .chain(key_pair.public_key.public_key_bytes().iter().copied())
             .collect();
         serializer.serialize_bytes(&bytes)
@@ -198,12 +199,16 @@ impl Device {
         &mut self,
         os: Option<String>,
         version: Option<wa::device_props::AppVersion>,
+        platform_type: Option<wa::device_props::PlatformType>,
     ) {
         if let Some(os) = os {
             self.device_props.os = Some(os);
         }
         if let Some(version) = version {
             self.device_props.version = Some(version);
+        }
+        if let Some(platform_type) = platform_type {
+            self.device_props.platform_type = Some(platform_type as i32);
         }
     }
 
